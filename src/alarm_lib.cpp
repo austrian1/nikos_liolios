@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "alarm_lib.h"
 #include "show_screen.h"
-cont int Button_Plus =3;
+const int Button_Plus =3;
 const int Button_Minus =2;
 const int Button_Enter =1;
 const int Buzzer = 3;                                                                               //  The pin for alarm buzzer  OUTPUT
@@ -22,9 +22,9 @@ bool battery_temp_alarm=false;
 bool power_amps_alert=false;
 bool Iginition_Amps_alarm=false;
 bool start=false;
-bool leave_button=false;
-uint start_time=0;
-uint elapsed_time=0;
+bool set_up_done=false;
+uint8_t start_time=0;
+uint8_t elapsed_time=0;
 uint8_t index=0;
 
 int show_screen=0;
@@ -32,8 +32,17 @@ int show_screen=0;
 const int menu_set_up_time =3000;
 const uint16_t pressed_button =100;
 const int screen_limit=3;
-const int Max_Battery_Temp_Limit=120;
+const int MAX_Battery_Temp_Limit=120;
 const int LOW_Battery_Temp_Limit=80;
+const int LOW_Voltage_Bottom_Limit=6;
+const int MAX_Voltage_Bottom_Limit=8;
+const int LOW_Voltage_Upper_Limit= 13;
+const int MAX_Voltage_Upper_Limit=15;
+const int MAX_Power_Amps_Limit=80;
+const int LOW_Power_Amps_Limit=60;
+const int MAX_Iginition_Amps_Limit=190;
+const int LOW_Iginition_Amps_Limit =150;
+
 void Set_up_Buzzer(){
   pinMode(Buzzer ,OUTPUT); 
   digitalWrite(Buzzer,HIGH);                                                                              //  Buzer High --> off. Gets activate with low
@@ -118,95 +127,78 @@ bool Iginition_Amps_Alarm(){
 
 
 void Menu_Set_Up(){
-  if(digitalRead(Button_Enter)==LOW && leave_button=false ){
-    if(start==false){
+  if(digitalRead(Button_Enter)==LOW && start==false ){
+          //it starts a clock
       start_time=millis();
       start=true;
-      leave_button=true;
+      //leave_button=true; //wrong it will play only once 
     }
     elapsed_time=millis()-start_time;
     if(elapsed_time>menu_set_up_time){
-      while(digitalRead(Button_Enter)==LOW && leave_button==true){
-        Show_Set_Up_Menu(show_screen);
+      while(digitalRead(Button_Enter)==LOW && start==true){  //leave_button is not needed 
+        Show_Set_Up_Menu( show_screen, index, Battery_Temp_Limit, Voltage_Bottom_Limit, Voltage_Upper_Limit, Power_Amps_Limit, Iginition_Amps_Limit);   //we can add a leave button show after a specificed time
       }
-      while(digitalRead(Button_Enter)==HIGH){
+      while(digitalRead(Button_Enter)==HIGH && start==true){
         Choose_Menu();
         changing_price();
-        Show_Set_Up_Menu(show_screen);
-        Show_Settings(show_screen, index, Battery_Temp_Limit, Water_Temp_Limit, Power_Amps_Limit, Iginition_Amps_Limit, Voltage_Bottom_Limit, Voltage_Upper_Limit, Inside_Temp_Upper_Limit, Inside_Temp_Bottom_Limit);
-        Show_variables();
-        start_time=millis();
-        elapsed_time=millis();
-        leave_button=false;
+        Show_Set_Up_Menu( show_screen, index, Battery_Temp_Limit, Voltage_Bottom_Limit, Voltage_Upper_Limit, Power_Amps_Limit, Iginition_Amps_Limit);
+     
+        set_up_done=true;
       }
     }
-  }
+
+    if((digitalRead(Button_Enter)==HIGH && start==true && elapsed_time<menu_set_up_time) || set_up_done==true ){
+      start_time=millis();
+      elapsed_time=millis();
+      start=false;
+    } 
 }
 
 void changing_price(){
 
-  if(Plus==true){
+  if(Plus()==true){
 
     if(index==0){
       Battery_Temp_Limit++;
-      if(Battery_Temp_Limit>Max_Battery_Temp_Limit){
+      if(Battery_Temp_Limit>MAX_Battery_Temp_Limit){
           Battery_Temp_Limit=LOW_Battery_Temp_Limit;
       }
     }
-
+    //change the low limit between 2 prices 
     if(index==1){
-      Water_Temp_Limit++;
-      if(Water_Temp_Limit>Max_Water_Temp_Limit){
-          Water_Temp_Limit=LOW_Water_Temp_Limit;
-      }
-    }
-
-    if(index==2){
-      Power_Amps_Limit++;
-      if(Power_Amps_Limit>Max_Power_Amps_Limit){
-          Power_Amps_Limit=LOW_Power_Amps_Limit;
-      }
-    }
-
-    if(index==3){
-      Iginition_Amps_Limit++;
-      if(Iginition_Amps_Limit>Max_Iginition_Amps_Limit){
-          Iginition_Amps_Limit=LOW_Iginition_Amps_Limit;
-      }
-    }
-
-    if(index==4){
       Voltage_Bottom_Limit++;
-      if(Voltage_Bottom_Limit>Max_Voltage_Bottom_Limit){
+      if(Voltage_Bottom_Limit>MAX_Voltage_Bottom_Limit){
           Voltage_Bottom_Limit=LOW_Voltage_Bottom_Limit;
       }
     }
 
-    if(index==5){
+    if(index==2){
       Voltage_Upper_Limit++;
-      if(Voltage_Upper_Limit>Max_Voltage_Upper_Limit){
-          Voltage_Upper_Limit=LOW_Voltage_Upper_Limit;
+      if(Voltage_Upper_Limit>MAX_Voltage_Bottom_Limit){
+          Voltage_Upper_Limit=LOW_Voltage_Bottom_Limit;
       }
     }
 
-    if(index==6){
-      Inside_Temp_Upper_Limit++;
-      if(Inside_Temp_Upper_Limit>Max_Inside_Temp_Limit){
-          Inside_Temp_Upper_Limit=LOW_Inside_Temp_Limit;
+  
+    if(index==3){
+      Power_Amps_Limit++;
+      if(Power_Amps_Limit>MAX_Power_Amps_Limit){
+          Power_Amps_Limit=LOW_Power_Amps_Limit;
       }
     }
 
-    if(index==7){
-      Inside_Temp_Bottom_Limit++;
-      if(Inside_Temp_Bottom_Limit>Max_Inside_Temp_Limit){
-          Inside_Temp_Bottom_Limit=LOW_Inside_Temp_Limit;
+    if(index==4){
+      Iginition_Amps_Limit++;
+      if(Iginition_Amps_Limit>MAX_Iginition_Amps_Limit){
+          Iginition_Amps_Limit=LOW_Iginition_Amps_Limit;
       }
     }
+
 
   }
 
 
-  if(Minus==true){
+  if(Minus()==true){
     
     if(index==0){
       Battery_Temp_Limit--;
@@ -214,41 +206,36 @@ void changing_price(){
           Battery_Temp_Limit=MAX_Battery_Temp_Limit;
       }
     }
-
     if(index==1){
-      Water_Temp_Limit--;
-      if(Water_Temp_Limit<LOW_Water_Temp_Limit){
-          Water_Temp_Limit=MAX_Water_Temp_Limit;
-      }
-    }
-
-    if(index==2){
-      Power_Amps_Limit--;
-      if(Power_Amps_Limit<LOW_Power_Amps_Limit){
-          Power_Amps_Limit=MAX_Power_Amps_Limit;
-      }
-    }
-
-    if(index==3){
-      Iginition_Amps_Limit--;
-      if(Iginition_Amps_Limit<LOW_Iginition_Amps_Limit){
-          Iginition_Amps_Limit=MAX_Iginition_Amps_Limit;
-      }
-    }
-
-    if(index==4){
       Voltage_Bottom_Limit--;
       if(Voltage_Bottom_Limit<LOW_Voltage_Bottom_Limit){
           Voltage_Bottom_Limit=MAX_Voltage_Bottom_Limit;
       }
     }
 
-    if(index==5){
+    if(index==2){
       Voltage_Upper_Limit--;
       if(Voltage_Upper_Limit<LOW_Voltage_Upper_Limit){
           Voltage_Upper_Limit=MAX_Voltage_Upper_Limit;
       }
     }
+
+   
+    if(index==3){
+      Power_Amps_Limit--;
+      if(Power_Amps_Limit<LOW_Power_Amps_Limit){
+          Power_Amps_Limit=MAX_Power_Amps_Limit;
+      }
+    }
+
+    if(index==4){
+      Iginition_Amps_Limit--;
+      if(Iginition_Amps_Limit<LOW_Iginition_Amps_Limit){
+          Iginition_Amps_Limit=MAX_Iginition_Amps_Limit;
+      }
+    }
+
+    
 
     if(index==6){
       Inside_Temp_Upper_Limit--;
@@ -282,7 +269,7 @@ bool Plus(){
 }
 
 bool Minus(){
-  if(digitalRead(Button_Minus)==LOW && digitalRead(Button_Plus)==LOW){
+  if(digitalRead(Button_Minus)==LOW && digitalRead(Button_Plus)==HIGH){
    
     delay(pressed_button);
     return true;

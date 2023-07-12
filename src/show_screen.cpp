@@ -106,7 +106,7 @@ void Show_Data_Menu_Faults(){
 
 void Show_Menu_Faults(float BatteryTemp,float Voltage,float Power_Amps,float Iginition_Amps){
 
-  Show_Data(float BatteryTemp,float Voltage,float Power_Amps,float Iginition_Amps);
+  Show_Data( BatteryTemp, Voltage, Power_Amps,Iginition_Amps);
 
 }
 
@@ -118,25 +118,38 @@ void Clear_Screen(){
   lcd.clear();
 }
 
-void Show_Set_Up_Menu(int show_screen){
+void Show_Set_Up_Menu(int show_screen,int index,float Battery_Temp_Limit,float Voltage_Bottom_Limit, float Voltage_Upper_Limit,float Power_Amps_Limit,float Iginition_Amps_Limit){
+  lcd.setCursor(index,19);
+  lcd.print("<");
   if(show_screen==0){
+    
     lcd.setCursor(0,0);
-    lcd.print("");
-
-
+    lcd.print("Bat Temp Lim :");
+    lcd.setCursor(0,14);
+    lcd.print(Battery_Temp_Limit);
+    
     lcd.setCursor(1,0);
-    lcd.print("");
+    lcd.print("Volt Bot Lim :");
+    lcd.setCursor(0,15);
+    lcd.print(Voltage_Bottom_Limit);
 
     lcd.setCursor(2,0);
-    lcd.print("");
+    lcd.print("Volt Up Lim :");
+    lcd.setCursor(0,14);
+    lcd.print(Voltage_Upper_Limit);
 
     lcd.setCursor(3,0);
-    lcd.print("");
+    lcd.print("Pow Amp Lim :");
+    lcd.setCursor(0,13);
+    lcd.print(Power_Amps_Limit);
+
   }
   
   if(show_screen==1){
     lcd.setCursor(0,0);
-    lcd.print("");
+    lcd.print("Ign Amp Lim :");
+    lcd.setCursor(0,13);
+    lcd.print(Iginition_Amps_Limit);
 
 
     lcd.setCursor(1,0);
@@ -151,7 +164,5 @@ void Show_Set_Up_Menu(int show_screen){
 
 }
 
-Show_Settings(int show_screen,int index ,float Engine_Temp_Limit,float Water_Temp_Limit,float Power_Amps_Limit,float Iginition_Amps_Limit,float Voltage_Bottom_Limit,float Voltage_Upper_Limit,foat Inside_Temp_Upper_Limit,float Inside_Temp_Bottom_Limit){
 
 
-}
